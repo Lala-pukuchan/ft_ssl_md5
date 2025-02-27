@@ -7,17 +7,44 @@
 
 #define BUFFER_SIZE 4096
 
-// ダミーのハッシュ計算関数（実際はMD5またはSHA-256の計算を行う）
+/* --- ハッシュ計算関数 --- */
+// 共通のダミー実装（実際にはそれぞれのアルゴリズムを実装する）
 void	compute_hash(const char *data, char *hash, size_t hash_size)
 {
 	(void)data;
-	(void)hash;
 	(void)hash_size;
 	// ここでは例として "dummyhash" を返す
 	snprintf(hash, hash_size, "dummyhash");
 }
 
-// STDINから全データを読み込む関数（動的に確保）
+// MD5 用のハッシュ関数
+void	md5_hash(const char *data, char *hash, size_t hash_size)
+{
+	// 実際の MD5 計算処理に置き換える
+	compute_hash(data, hash, hash_size);
+}
+
+// SHA256 用のハッシュ関数
+void	sha256_hash(const char *data, char *hash, size_t hash_size)
+{
+	// 実際の SHA256 計算処理に置き換える
+	compute_hash(data, hash, hash_size);
+}
+
+/* --- 関数ポインタ・ディスパッチ --- */
+typedef void	(*hash_func_t)(const char *data, char *hash, size_t hash_size);
+
+typedef struct
+{
+	const char	*name;
+	hash_func_t	func;
+}				hash_dispatch_t;
+
+hash_dispatch_t	dispatch_table[] = {{"md5", md5_hash}, {"sha256", sha256_hash},
+		{NULL, NULL}};
+
+/* --- 入出力処理 --- */
+// STDIN から全データを読み込む
 char	*read_stdin(void)
 {
 	size_t	capacity;
@@ -54,7 +81,7 @@ char	*read_stdin(void)
 	return (buffer);
 }
 
-// ファイルから全データを読み込む関数
+// ファイルから全データを読み込む
 char	*read_file(const char *filename)
 {
 	FILE	*fp;
@@ -84,34 +111,47 @@ char	*read_file(const char *filename)
 	return (buffer);
 }
 
+/* --- メイン処理 --- */
 int	main(int argc, char *argv[])
 {
-	char	*command;
-	int		p_flag = 0, q_flag = 0, r_flag;
-	char	*s_value;
-	int		opt;
-	char	hash[256];
-	char	*stdin_data;
-	char	*file_data;
-	char	*stdin_data;
+	char		*command;
+	int			p_flag = 0, q_flag = 0, r_flag;
+	char		*s_value;
+	int			opt;
+	char		hash[256];
+	char		*stdin_data;
+	char		*file_data;
+	hash_func_t	hash_func;
 
 	p_flag = 0, q_flag = 0, r_flag = 0, s_flag;
-	// 引数チェックとコマンド判定
+	p_flag = 0, q_flag = 0, r_flag = 0, s_flag = 0;
+	s_value = NULL;
+	stdin_data = NULL;
+	file_data = NULL;
+	/* 引数チェックとコマンド判定 */
 	if (argc < 2)
 	{
 		print_usage(argv[0]);
 		return (EXIT_FAILURE);
 	}
 	command = argv[1];
-	if (strcmp(command, "md5") != 0 && strcmp(command, "sha256") != 0)
+	/* 関数ポインタによるディスパッチ */
+	hash_func = NULL;
+	for (int i = 0; dispatch_table[i].name != NULL; i++)
+	{
+		if (strcmp(command, dispatch_table[i].name) == 0)
+		{
+			hash_func = dispatch_table[i].func;
+			break ;
+		}
+	}
+	if (!hash_func)
 	{
 		print_invalid_command(command);
 		return (EXIT_FAILURE);
 	}
-	// オプション解析（argv[1]以降）
-	p_flag = 0, q_flag = 0, r_flag = 0, s_flag = 0;
-	s_value = NULL;
-	optind = 2; // argv[0]はプログラム名、argv[1]はコマンドなので、解析はargv[2]から
+	/* オプション解析（argv[1]以降） */
+	optind = 2; // argv[0]: プログラム名, argv[1]: コマンド
 	while ((opt = getopt(argc, argv, "pqrs:")) != -1)
 	{
 		switch (opt)
@@ -134,19 +174,18 @@ int	main(int argc, char *argv[])
 			return (EXIT_FAILURE);
 		}
 	}
-	/* ① -p フラグ: STDINを読み込み、入力内容をそのまま出力しつつ、ハッシュ値を計算して表示する */
+	/* ① -p フラグ: STDINを読み込み、入力内容をそのまま出力しつつ、ハッシュ値を計算して表示 */
 	if (p_flag)
 	{
 		stdin_data = read_stdin();
-		// STDINの内容をそのままエコー
 		printf("%s", stdin_data);
-		compute_hash(stdin_data, hash, sizeof(hash));
+		hash_func(stdin_data, hash, sizeof(hash));
 		if (!q_flag)
 		{
 			if (r_flag)
-				printf("%s\n", hash); // 逆出力: ハッシュ値のみまたは付加情報を後ろに
+				printf("%s\n", hash);
 			else
-				printf("(stdin)= %s\n", hash); // 通常の出力フォーマット
+				printf("(stdin)= %s\n", hash);
 		}
 		else
 		{
@@ -154,10 +193,10 @@ int	main(int argc, char *argv[])
 		}
 		free(stdin_data);
 	}
-	/* ② -s フラグ: 文字列引数からハッシュ値を計算して表示する */
+	/* ② -s フラグ: 文字列引数からハッシュ値を計算して表示 */
 	if (s_flag && s_value)
 	{
-		compute_hash(s_value, hash, sizeof(hash));
+		hash_func(s_value, hash, sizeof(hash));
 		if (!q_flag)
 		{
 			if (r_flag)
@@ -170,13 +209,13 @@ int	main(int argc, char *argv[])
 			printf("%s\n", hash);
 		}
 	}
-	/* ③ 残りの引数をファイル名とみなして、各ファイルの内容からハッシュ値を計算して表示する */
+	/* ③ 残りの引数をファイル名として処理 */
 	for (int i = optind; i < argc; i++)
 	{
 		file_data = read_file(argv[i]);
 		if (!file_data)
-			continue ; // エラー時はスキップ
-		compute_hash(file_data, hash, sizeof(hash));
+			continue ;
+		hash_func(file_data, hash, sizeof(hash));
 		if (!q_flag)
 		{
 			if (r_flag)
@@ -190,11 +229,11 @@ int	main(int argc, char *argv[])
 		}
 		free(file_data);
 	}
-	/* ④ もし -p, -s 両方もなく、かつファイル指定もない場合は STDIN から読み込む */
+	/* ④ -p, -s 両方もなく、かつファイル指定もない場合は STDIN から読み込み */
 	if (!p_flag && !s_flag && optind >= argc)
 	{
 		stdin_data = read_stdin();
-		compute_hash(stdin_data, hash, sizeof(hash));
+		hash_func(stdin_data, hash, sizeof(hash));
 		if (!q_flag)
 		{
 			if (r_flag)
