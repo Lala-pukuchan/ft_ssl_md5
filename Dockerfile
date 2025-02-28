@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     gcc \
     make \
+    openssl \
+    libssl-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 作業ディレクトリの設定
