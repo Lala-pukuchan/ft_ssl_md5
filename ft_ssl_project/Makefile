@@ -4,11 +4,16 @@ NAME = ft_ssl
 # コンパイラとフラグ設定
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror
-# カレントディレクトリをインクルードパスに追加
-CFLAGS += -I.
+# カレントディレクトリとmd5ディレクトリをインクルードパスに追加
+CFLAGS += -I. -Imd5
 
 # ソースファイルとオブジェクトファイル
-SRC = ft_ssl.c util/print_help.c util/compute_checksum.c util/read.c
+SRC = ft_ssl.c \
+      util/print_help.c \
+      util/compute_checksum.c \
+      util/read.c \
+      md5/md5.c
+
 OBJ = $(SRC:.c=.o)
 
 # デフォルトルール：すべてのファイルをコンパイルして実行ファイルを生成
@@ -16,7 +21,6 @@ all: $(NAME)
 
 $(NAME): $(OBJ)
 	$(CC) $(CFLAGS) -o $(NAME) $(OBJ) -lm
-
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@

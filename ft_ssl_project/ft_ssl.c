@@ -1,3 +1,4 @@
+#include "md5/md5.h"
 #include "util/print_help.h"
 #include "util/read.h"
 #include <errno.h>
@@ -6,28 +7,11 @@
 #include <string.h>
 #include <unistd.h>
 
-/* --- ハッシュ計算関数 --- */
-// 共通のダミー実装（実際にはそれぞれのアルゴリズムを実装する）
-void	compute_hash(const char *data, char *hash, size_t hash_size)
-{
-	(void)data;
-	(void)hash_size;
-	// ここでは例として "dummyhash" を返す
-	snprintf(hash, hash_size, "dummyhash");
-}
-
-// MD5 用のハッシュ関数
-void	md5_hash(const char *data, char *hash, size_t hash_size)
-{
-	// 実際の MD5 計算処理に置き換える
-	compute_hash(data, hash, hash_size);
-}
-
-// SHA256 用のハッシュ関数
+/* SHA256 用のハッシュ関数（ダミー実装） */
 void	sha256_hash(const char *data, char *hash, size_t hash_size)
 {
-	// 実際の SHA256 計算処理に置き換える
-	compute_hash(data, hash, hash_size);
+	(void)data;
+	snprintf(hash, hash_size, "dummysha256");
 }
 
 /* --- 関数ポインタ・ディスパッチ --- */
@@ -58,7 +42,7 @@ int	main(int argc, char *argv[])
 	s_value = NULL;
 	stdin_data = NULL;
 	file_data = NULL;
-	/* 引数チェックとコマンド判定 */
+	hash_func = NULL;
 	if (argc < 2)
 	{
 		print_usage(argv[0]);
@@ -66,7 +50,6 @@ int	main(int argc, char *argv[])
 	}
 	command = argv[1];
 	/* 関数ポインタによるディスパッチ */
-	hash_func = NULL;
 	for (int i = 0; dispatch_table[i].name != NULL; i++)
 	{
 		if (strcmp(command, dispatch_table[i].name) == 0)
@@ -104,7 +87,7 @@ int	main(int argc, char *argv[])
 			return (EXIT_FAILURE);
 		}
 	}
-	/* ① -p フラグ: STDINを読み込み、入力内容をそのまま出力しつつ、ハッシュ値を計算して表示 */
+	/* ① -p フラグ: STDIN を読み込み、入力内容をそのまま出力しつつハッシュ値を計算 */
 	if (p_flag)
 	{
 		stdin_data = read_stdin();
@@ -123,7 +106,7 @@ int	main(int argc, char *argv[])
 		}
 		free(stdin_data);
 	}
-	/* ② -s フラグ: 文字列引数からハッシュ値を計算して表示 */
+	/* ② -s フラグ: 文字列引数からハッシュ値を計算 */
 	if (s_flag && s_value)
 	{
 		hash_func(s_value, hash, sizeof(hash));
