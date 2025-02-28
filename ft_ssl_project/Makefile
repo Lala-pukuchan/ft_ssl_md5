@@ -10,7 +10,6 @@ CFLAGS += -I. -Imd5
 # ソースファイルとオブジェクトファイル
 SRC = ft_ssl.c \
       util/print_help.c \
-      util/compute_checksum.c \
       util/read.c \
       md5/md5.c
 
