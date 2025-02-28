@@ -8,7 +8,7 @@ CFLAGS = -Wall -Wextra -Werror
 CFLAGS += -I.
 
 # ソースファイルとオブジェクトファイル
-SRC = ft_ssl.c util/print_help.c util/compute_checksum.c
+SRC = ft_ssl.c util/print_help.c util/compute_checksum.c util/read.c
 OBJ = $(SRC:.c=.o)
 
 # デフォルトルール：すべてのファイルをコンパイルして実行ファイルを生成
