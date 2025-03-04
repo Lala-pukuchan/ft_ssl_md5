@@ -11,7 +11,8 @@ CFLAGS += -I. -Imd5
 SRC = ft_ssl.c \
       util/print_help.c \
       util/read.c \
-      md5/md5.c
+      md5/md5.c	\
+	  sha256/sha256.c
 
 OBJ = $(SRC:.c=.o)
 

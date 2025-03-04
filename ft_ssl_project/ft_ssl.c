@@ -1,4 +1,5 @@
 #include "md5/md5.h"
+#include "sha256/sha256.h"
 #include "util/print_help.h"
 #include "util/read.h"
 #include <errno.h>
@@ -6,13 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-/* SHA256 用のハッシュ関数（ダミー実装） */
-void	sha256_hash(const char *data, char *hash, size_t hash_size)
-{
-	(void)data;
-	snprintf(hash, hash_size, "dummysha256");
-}
 
 /* --- 関数ポインタ・ディスパッチ --- */
 typedef void	(*hash_func_t)(const char *data, char *hash, size_t hash_size);
@@ -30,7 +24,7 @@ hash_dispatch_t	dispatch_table[] = {{"md5", md5_hash}, {"sha256", sha256_hash},
 int	main(int argc, char *argv[])
 {
 	char		*command;
-	int			p_flag = 0, q_flag = 0, r_flag = 0, s_flag;
+	int			p_flag = 0, q_flag = 0, r_flag = 0, s_flag = 0;
 	char		*s_value;
 	int			opt;
 	char		hash[256];
@@ -38,7 +32,6 @@ int	main(int argc, char *argv[])
 	char		*file_data;
 	hash_func_t	hash_func;
 
-	p_flag = 0, q_flag = 0, r_flag = 0, s_flag = 0;
 	s_value = NULL;
 	stdin_data = NULL;
 	file_data = NULL;
