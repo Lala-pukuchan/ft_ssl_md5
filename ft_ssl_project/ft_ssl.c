@@ -84,17 +84,17 @@ int	main(int argc, char *argv[])
 	if (p_flag)
 	{
 		stdin_data = read_stdin();
-		printf("%s", stdin_data);
 		hash_func(stdin_data, hash, sizeof(hash));
+		size_t len = strlen(stdin_data);
+		if (len > 0 && stdin_data[len - 1] == '\n')
+			stdin_data[len - 1] = '\0';
 		if (!q_flag)
 		{
-			if (r_flag)
-				printf("%s\n", hash);
-			else
-				printf("(stdin)= %s\n", hash);
+			printf("(\"%s\")= %s\n", stdin_data, hash);
 		}
 		else
 		{
+			printf("%s\n", stdin_data);
 			printf("%s\n", hash);
 		}
 		free(stdin_data);
